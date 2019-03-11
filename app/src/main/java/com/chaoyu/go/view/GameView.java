@@ -101,6 +101,37 @@ public class GameView extends View {
         return false;
     }
 
+    /**
+     * 不能重复点击
+     *
+     * @param x
+     * @param y
+     * @return
+     */
+    private Point getValidPoint(int x, int y) {
+
+        return new Point((int) (x / mLineHeight), (int) (y / mLineHeight));
+    }
+
+    /**
+     * 绘制棋子的方法
+     *
+     * @param canvas
+     */
+    private void drawPieces(Canvas canvas) {
+        for (int i = 0; i < mWhiteArray.size(); i++) {
+            //获取白棋子的坐标
+            Point whitePoint = mWhiteArray.get(i);
+            canvas.drawBitmap(mBlack, (whitePoint.x + (1 - rowSize) / 2) * mLineHeight, (whitePoint.y + (1 - rowSize) / 2) * mLineHeight, null);
+        }
+
+        for (int i = 0; i < mBlackArray.size(); i++) {
+            //获取黑棋子的坐标
+            Point blackPoint = mBlackArray.get(i);
+            canvas.drawBitmap(mWhite, (blackPoint.x + (1 - rowSize) / 2) * mLineHeight, (blackPoint.y + (1 - rowSize) / 2) * mLineHeight, null);
+        }
+    }
+
     private void drawLine(Canvas canvas){
         int w = mPanelWidth;
         float lineHeight = mLineHeight;
@@ -122,6 +153,7 @@ public class GameView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         drawLine(canvas);
+        drawPieces(canvas);
     }
 
     @Override
