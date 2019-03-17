@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        >
+
+
+    <TextView
+            android:id="@+id/tips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="正在连接服务器"
+            android:visibility="invisible"
+            />
+    <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:visibility="invisible"
+            />
+
+    <android.support.v7.widget.AppCompatEditText
+            android:layout_margin="8dp"
+            android:id="@+id/create_room_input"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:hint="请输入房间名"/>
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="创建房间"
+            android:id="@+id/create_button"
+            />
+
+    <android.support.v7.widget.AppCompatEditText
+            android:layout_margin="8dp"
+            android:id="@+id/connect_room_input"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:hint="请输入房间名"
+            />
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="连接房间"
+            android:id="@+id/connect_button"
+            />
+
+
+</LinearLayout>

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Go</string>
+    <string name="_room_name">房间名称</string>
 </resources>
