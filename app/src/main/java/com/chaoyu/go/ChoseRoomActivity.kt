@@ -2,6 +2,7 @@ package com.chaoyu.go
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Point
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
@@ -10,6 +11,7 @@ import android.view.View
 import android.widget.Toast
 import com.chaoyu.go.beans.Package
 import kotlinx.android.synthetic.main.activity_main.*
+import org.jetbrains.anko.doAsync
 import org.json.JSONObject
 
 class ChoseRoomActivity : AppCompatActivity() {
@@ -32,6 +34,10 @@ class ChoseRoomActivity : AppCompatActivity() {
                 Package.GAME_START->{
                     Toast.makeText(this@ChoseRoomActivity,"游戏开始，你是白棋",Toast.LENGTH_SHORT).show()
                     initPanel()
+                }
+                Package.EAT->{
+                    val pkg = msg.obj as Package
+                    panel.beEat(pkg.isWhite, Point(pkg.x,pkg.y))
                 }
             }
         }
@@ -78,6 +84,25 @@ class ChoseRoomActivity : AppCompatActivity() {
         override fun send(x: Int, y: Int, isWhite: Boolean) {
             Connection.map[name]!!.send(x,y,isWhite)
         }
+
+        override fun updateMsg(status: String, msg: String) {
+            val newMessage = "${message.text}\n$msg"
+            message.text = newMessage
+        }
+
+        override fun sendEat(x: Int, y: Int, isWhite: Boolean) {
+            Connection.map[name]!!.sendEat(x,y,isWhite)
+        }
+
+        override fun win(isWhite: Boolean) {
+            Toast.makeText(this@ChoseRoomActivity, if (isWhite) "白棋胜利" else "黑棋胜利" ,Toast.LENGTH_LONG).show()
+            Thread{
+                Thread.sleep(1000)
+                runOnUiThread {
+                    finish()
+                }
+            }.start()
+        }
     }
 
     override fun onDestroy() {
@@ -88,4 +113,7 @@ class ChoseRoomActivity : AppCompatActivity() {
 
 interface StatusCallback{
     fun send(x:Int,y:Int,isWhite:Boolean)
+    fun updateMsg(status:String,msg:String)
+    fun sendEat(x: Int,y: Int,isWhite: Boolean)
+    fun win(isWhite: Boolean)
 }

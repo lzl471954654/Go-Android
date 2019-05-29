@@ -11,7 +11,9 @@ import com.chaoyu.go.R;
 import com.chaoyu.go.StatusCallback;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class GameView extends View {
 
@@ -38,6 +40,12 @@ public class GameView extends View {
     private StatusCallback callback;
 
     private boolean isGameStart = false;
+
+    private int[][] panelData = new int[19][19];
+
+    private int blackCount = 0;
+    private int whiteCount = 0;
+    private static int WIN_COUNT = 3;
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -77,11 +85,21 @@ public class GameView extends View {
 
     public void addPoint(int x,int y,boolean mIsWhite){
         Point point = new Point(x,y);
-        if (type == 1)
+        if (type == 1){
             mBlackArray.add(point);
-        else
+            panelData[x][y] = -1;
+        }
+        else{
             mWhiteArray.add(point);
+            panelData[x][y] = 1;
+        }
         this.mIsWhite = !mIsWhite;
+        String color = "";
+        if (mIsWhite)
+            color = "白棋";
+        else
+            color = "黑棋";
+        callback.updateMsg("luozi",color+"成功落子点："+x+","+y);
         invalidate();
     }
 
@@ -142,17 +160,25 @@ public class GameView extends View {
 
                 if (type == 1){
                     if (mIsWhite){
-                        mWhiteArray.add(point);
-                        callback.send(point.x,point.y,mIsWhite);
-                        mIsWhite = !mIsWhite;
+                        if (canLuoZi(mIsWhite,point.x,point.y)){
+                            mWhiteArray.add(point);
+                            callback.send(point.x,point.y,mIsWhite);
+                            panelData[point.x][point.y] = 1;
+                            mIsWhite = !mIsWhite;
+                            eatCheck();
+                        }
                     }else {
                         Toast.makeText(context,"请等待黑棋",Toast.LENGTH_SHORT).show();
                     }
                 }else {
                     if (!mIsWhite){
-                        mBlackArray.add(point);
-                        callback.send(point.x,point.y,mIsWhite);
-                        mIsWhite = !mIsWhite;
+                        if (canLuoZi(mIsWhite,point.x,point.y)){
+                            mBlackArray.add(point);
+                            callback.send(point.x,point.y,mIsWhite);
+                            panelData[point.x][point.y] = -1;
+                            mIsWhite = !mIsWhite;
+                            eatCheck();
+                        }
                     }else {
                         Toast.makeText(context,"请等待白棋",Toast.LENGTH_SHORT).show();
                     }
@@ -166,6 +192,139 @@ public class GameView extends View {
         return true;
     }
 
+
+    public void eatCheck(){
+        Set<Point> set = new HashSet<>();
+        for (Point point : mWhiteArray) {
+            if (!checkRange(true,point.x,point.y,panelData)){
+                eatInner(true,point);
+                set.add(point);
+            }
+        }
+        mWhiteArray.removeAll(set);
+        set.clear();
+        for (Point point : mBlackArray) {
+            if (!checkRange(false,point.x,point.y,panelData)){
+                eatInner(false,point);
+                set.add(point);
+            }
+        }
+        mBlackArray.removeAll(set);
+        set.clear();
+    }
+
+    private void eatInner(boolean isWhite,Point point){
+        String color = "白棋";
+        if (isWhite){
+            color = "白棋";
+            blackCount++;
+        }else {
+            color = "黑棋";
+            whiteCount++;
+        }
+        panelData[point.x][point.y] = 0;
+        callback.updateMsg("eat",color+":"+point.x+","+point.y+"被吃");
+        callback.sendEat(point.x,point.y,isWhite);
+        if (blackCount >= WIN_COUNT){
+            callback.win(false);
+        }
+        if (whiteCount >= WIN_COUNT){
+            callback.win(true);
+        }
+    }
+
+    public void beEat(boolean isWhite,Point point){
+        String color = "白棋";
+        if (isWhite){
+            mWhiteArray.remove(point);
+            blackCount++;
+        }else {
+            mBlackArray.remove(point);
+            color = "黑棋";
+            whiteCount++;
+        }
+        panelData[point.x][point.y] = 0;
+        callback.updateMsg("eat",color+":"+point.x+","+point.y+"被吃");
+        invalidate();
+        if (blackCount >= WIN_COUNT){
+            callback.win(false);
+        }
+        if (whiteCount >= WIN_COUNT){
+            callback.win(true);
+        }
+    }
+
+    public boolean canLuoZi(boolean isWhite,int x,int y){
+        if (checkRange(isWhite,x,y,panelData)){
+            String color = "";
+            if (isWhite)
+                color = "白棋";
+            else
+                color = "黑棋";
+            callback.updateMsg("luozi",color+"成功落子点："+x+","+y);
+            return true;
+        }
+        else{
+            callback.updateMsg("luozi","此处为死期，无法落子");
+            return false;
+        }
+    }
+
+    public  boolean checkRange(boolean isWhite,int x,int y,int[][] panel){
+        if (isWhite){
+            if (x>=1&&x<=17){
+                if (y>=1&&y<=17){
+                    return panel[x + 1][y] != -1 || panel[x - 1][y] != -1 || panel[x][y - 1] != -1 || panel[x][y + 1] != -1;
+                }else if (y == 0){
+                    return panel[x + 1][y] != -1 || panel[x - 1][y] != -1 || panel[x][y+1] != -1;
+                }else {
+                    return panel[x + 1][y] != -1 || panel[x - 1][y] != -1 || panel[x][y-1] != -1;
+                }
+            }else if (x == 0){
+                if (y>=1&&y<=17){
+                    return panel[x][y - 1] != -1 || panel[x][y + 1] != -1 || panel[x+1][y] != -1;
+                }else if (y == 0){
+                    return panel[x+1][y] != -1 || panel[x][y+1] != -1;
+                }else {
+                    return panel[x+1][y] != -1 || panel[x][y-1] != -1;
+                }
+            }else {
+                if (y>=1&&y<=17){
+                    return panel[x][y - 1] != -1 || panel[x][y + 1] != -1 || panel[x-1][y] != -1;
+                }else if (y==0){
+                    return panel[x-1][y] != -1 || panel[x][y+1] != -1;
+                }else {
+                    return panel[x-1][y] != -1 || panel[x][y-1] != -1;
+                }
+            }
+        }else {
+            if (x>=1&&x<=17){
+                if (y>=1&&y<=17){
+                    return panel[x + 1][y] != 1 || panel[x - 1][y] != 1 || panel[x][y - 1] != 1 || panel[x][y + 1] != 1;
+                }else if (y == 0){
+                    return panel[x + 1][y] != 1 || panel[x - 1][y] != 1 || panel[x][y+1] != 1;
+                }else {
+                    return panel[x + 1][y] != 1 || panel[x - 1][y] != 1 || panel[x][y-1] != 1;
+                }
+            }else if (x == 0){
+                if (y>=1&&y<=17){
+                    return panel[x][y - 1] != 1 || panel[x][y + 1] != 1 || panel[x+1][y] != 1;
+                }else if (y == 0){
+                    return panel[x+1][y] != 1|| panel[x][y+1] != 1;
+                }else {
+                    return panel[x+1][y] != 1 || panel[x][y-1] != 1;
+                }
+            }else {
+                if (y>=1&&y<=17){
+                    return panel[x][y - 1] != 1 || panel[x][y + 1] != 1 || panel[x-1][y] != 1;
+                }else if (y==0){
+                    return panel[x-1][y] != 1 || panel[x][y+1] != 1;
+                }else {
+                    return panel[x-1][y] != 1 || panel[x][y-1] != 1;
+                }
+            }
+        }
+    }
     /**
      * 不能重复点击
      *

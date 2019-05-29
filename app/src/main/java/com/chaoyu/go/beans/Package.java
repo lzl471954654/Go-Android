@@ -12,6 +12,7 @@ public class Package implements Serializable {
     public static final int CONNECT_FAL = 22;
     public static final int LUOZI = 100;
     public static final int GAME_START = 101;
+    public static final int EAT = 200;
 
     private int type;
     private String roomName;

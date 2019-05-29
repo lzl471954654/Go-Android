@@ -71,6 +71,15 @@ class Connection(
         sendPackage(pkg,socket)
     }
 
+    public fun sendEat(x:Int,y: Int,isWhite: Boolean){
+        val pkg = Package(Package.EAT)
+        pkg.x = x
+        pkg.y = y
+        pkg.roomName = name
+        pkg.isWhite = isWhite
+        sendPackage(pkg,socket)
+    }
+
     private fun parsePKG(pkg : Package){
         when(pkg.type){
             Package.CREATE_SUC->{
